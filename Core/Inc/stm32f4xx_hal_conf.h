@@ -38,9 +38,9 @@
 #define HAL_MODULE_ENABLED
 
   /* #define HAL_CRYP_MODULE_ENABLED */
-/* #define HAL_ADC_MODULE_ENABLED */
+#define HAL_ADC_MODULE_ENABLED
 #define HAL_CAN_MODULE_ENABLED
-/* #define HAL_CRC_MODULE_ENABLED */
+#define HAL_CRC_MODULE_ENABLED
 /* #define HAL_CAN_LEGACY_MODULE_ENABLED */
 /* #define HAL_DAC_MODULE_ENABLED */
 /* #define HAL_DCMI_MODULE_ENABLED */
@@ -57,7 +57,7 @@
 /* #define HAL_I2S_MODULE_ENABLED */
 /* #define HAL_IWDG_MODULE_ENABLED */
 /* #define HAL_LTDC_MODULE_ENABLED */
-/* #define HAL_RNG_MODULE_ENABLED */
+#define HAL_RNG_MODULE_ENABLED
 /* #define HAL_RTC_MODULE_ENABLED */
 /* #define HAL_SAI_MODULE_ENABLED */
 /* #define HAL_SD_MODULE_ENABLED */
@@ -222,7 +222,7 @@
 /* Section 2: PHY configuration section */
 
 /* DP83848_PHY_ADDRESS Address*/
-#define DP83848_PHY_ADDRESS
+#define DP83848_PHY_ADDRESS           0x01U
 /* PHY Reset delay these values are based on a 1 ms Systick interrupt*/
 #define PHY_RESET_DELAY                 0x000000FFU
 /* PHY Configuration delay */
@@ -252,10 +252,10 @@
 #define PHY_JABBER_DETECTION            ((uint16_t)0x0002U)  /*!< Jabber condition detected            */
 
 /* Section 4: Extended PHY Registers */
-#define PHY_SR                          ((uint16_t))    /*!< PHY status register Offset                      */
+#define PHY_SR                          ((uint16_t)0x10U)    /*!< PHY status register Offset                      */
 
-#define PHY_SPEED_STATUS                ((uint16_t))  /*!< PHY Speed mask                                  */
-#define PHY_DUPLEX_STATUS               ((uint16_t))  /*!< PHY Duplex mask                                 */
+#define PHY_SPEED_STATUS                ((uint16_t)0x0002U)  /*!< PHY Speed mask                                  */
+#define PHY_DUPLEX_STATUS               ((uint16_t)0x0004U)  /*!< PHY Duplex mask                                 */
 
 /* ################## SPI peripheral configuration ########################## */
 

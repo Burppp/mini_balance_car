@@ -7,7 +7,7 @@
   ******************************************************************************
   * @attention
   *
-  * Copyright (c) 2024 STMicroelectronics.
+  * Copyright (c) 2022 STMicroelectronics.
   * All rights reserved.
   *
   * This software is licensed under terms that can be found in the LICENSE file
@@ -28,17 +28,6 @@ extern "C" {
 
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_hal.h"
-
-#include "stm32f4xx_ll_rcc.h"
-#include "stm32f4xx_ll_bus.h"
-#include "stm32f4xx_ll_system.h"
-#include "stm32f4xx_ll_exti.h"
-#include "stm32f4xx_ll_cortex.h"
-#include "stm32f4xx_ll_utils.h"
-#include "stm32f4xx_ll_pwr.h"
-#include "stm32f4xx_ll_dma.h"
-#include "stm32f4xx_ll_tim.h"
-#include "stm32f4xx_ll_gpio.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -68,20 +57,34 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
-#define USB_OTG_Pin LL_GPIO_PIN_10
-#define USB_OTG_GPIO_Port GPIOA
-#define KEY_Pin LL_GPIO_PIN_0
+#define LASER_Pin GPIO_PIN_8
+#define LASER_GPIO_Port GPIOC
+#define LED_R_Pin GPIO_PIN_12
+#define LED_R_GPIO_Port GPIOH
+#define LED_G_Pin GPIO_PIN_11
+#define LED_G_GPIO_Port GPIOH
+#define LED_B_Pin GPIO_PIN_10
+#define LED_B_GPIO_Port GPIOH
+#define BUZZER_Pin GPIO_PIN_14
+#define BUZZER_GPIO_Port GPIOD
+#define KEY_Pin GPIO_PIN_0
 #define KEY_GPIO_Port GPIOA
-#define CS1_ACCLE_Pin LL_GPIO_PIN_4
-#define CS1_ACCLE_GPIO_Port GPIOA
-#define INT1_ACCEL_Pin LL_GPIO_PIN_4
+#define CS1_ACCEL_Pin GPIO_PIN_4
+#define CS1_ACCEL_GPIO_Port GPIOA
+#define INT1_ACCEL_Pin GPIO_PIN_4
 #define INT1_ACCEL_GPIO_Port GPIOC
 #define INT1_ACCEL_EXTI_IRQn EXTI4_IRQn
-#define INT1_GYRO_Pin LL_GPIO_PIN_5
+#define INT1_GYRO_Pin GPIO_PIN_5
 #define INT1_GYRO_GPIO_Port GPIOC
 #define INT1_GYRO_EXTI_IRQn EXTI9_5_IRQn
-#define CS1_GYRO_Pin LL_GPIO_PIN_0
+#define SPI2_CS_Pin GPIO_PIN_12
+#define SPI2_CS_GPIO_Port GPIOB
+#define CS1_GYRO_Pin GPIO_PIN_0
 #define CS1_GYRO_GPIO_Port GPIOB
+#define SWITCH_L_Pin GPIO_PIN_14
+#define SWITCH_L_GPIO_Port GPIOB
+#define SWITCH_R_Pin GPIO_PIN_15
+#define SWITCH_R_GPIO_Port GPIOB
 
 /* USER CODE BEGIN Private defines */
 
