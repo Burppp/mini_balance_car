@@ -149,6 +149,10 @@ typedef struct
     chassis_power_limit_t chassis_power_limit;
 } chassis_t;
 
+
+
+
+
 //函数声明
 _Noreturn extern void chassis_task(void const *pvParameters);
 

@@ -40,7 +40,8 @@ int16_t give_current_limit[4];
 static fp32 rotate_ratio_f = ((Wheel_axlespacing + Wheel_spacing) / 2.0f - GIMBAL_OFFSET); //rad
 static fp32 rotate_ratio_b = ((Wheel_axlespacing + Wheel_spacing) / 2.0f + GIMBAL_OFFSET);
 static fp32 wheel_rpm_ratio = 60.0f / (PERIMETER * M3508_DECELE_RATIO); //车轮转速比
-
+extern fp32 INS_angle[3];
+extern fp32 INS_gyro[3];
 /*      函数及声明   */
 static void chassis_init(chassis_t *chassis_ptr);
 
@@ -75,76 +76,84 @@ static float chassis_speed_change();
 first_kalman_filter_t currentKal;
 first_kalman_filter_t chassis_filter[4];
 float Q,R,filterCurrent,nowCurrent;
+motor_t motorL;
+motor_t motorR;
+pid_t standstill_pid;
+extern fp32 INS_angle[3];
+float ins_angle[3];
+uint8_t mode=0;
+void change_current_to_pwm(motor_t *motor)
+{
+
+    motor->pwm1=(uint16_t)(1000+motor->give_current);
+    motor->pwm2=(uint16_t)(1000-motor->give_current);
+    if(motor->pwm1>2000)
+    {
+        motor->pwm1=2000;
+    }
+    if(motor->pwm2>2000)
+    {
+        motor->pwm2=2000;
+    }
+    if(motor->pwm1<0)
+    {
+        motor->pwm1=0;
+    }
+    if(motor->pwm2<0)
+    {
+        motor->pwm2=0;
+    }
+}
 /*程序主体*/
+float speed_set;
+float aver_speed;
+float turn_speed_set;
 _Noreturn void chassis_task(void const *pvParameters) {
 
     vTaskDelay(CHASSIS_TASK_INIT_TIME);
-    chassis_init(&chassis);//底盘初始化
-    send_robot_id(); //给视觉发送机器人ID，确认自己是红蓝方
-    Q=0.5;
-    R=0.5;
-    first_Kalman_Create(&currentKal,Q,R);
-    for(int i=0;i<4;i++){
-        first_Kalman_Create(&chassis_filter[i],Q,R);
-    }
+//    chassis_init(&chassis);//底盘初始化
+    pid_init(&standstill_pid, 1000, 1000, 38, 0, 750);
+    pid_init(&motorL.pid, 500, 200, 14, 0.00f, 90);
+    pid_init(&motorR.pid, 500, 200, 14, 0.00f, 90);
+    first_Kalman_Create(&motorR.kalman, 1, 1);
+    first_Kalman_Create(&motorL.kalman, 1, 1);
     //主任务循环
     while (1) {
-        vTaskSuspendAll(); //锁住RTOS内核防止控制过程中断，造成错误
-
-        //更新PC的控制信息
-        update_pc_info();
-
-        //设置底盘模式
-        chassis_set_mode(&chassis);
-
-        //遥控器获取底盘方向矢量
-        chassis_ctrl_info_get();
-
-        //遥控断电失能
-        chassis_device_offline_handle();
-
-        //判断底盘模式选择 决定是否覆盖底盘转速vw;
-        switch (chassis.mode) {
-            case CHASSIS_ONLY:
-                HAL_GPIO_WritePin(GPIOI,GPIO_PIN_6,GPIO_PIN_SET);
-                break;
-
-            case CHASSIS_FOLLOW_GIMBAL:
-                HAL_GPIO_WritePin(GPIOI,GPIO_PIN_6,GPIO_PIN_SET);
-                chassis_follow_gimbal_handle();
-                break;
-
-            case CHASSIS_SPIN:
-                HAL_GPIO_WritePin(GPIOI,GPIO_PIN_6,GPIO_PIN_RESET);
-                chassis_spin_handle();
-                break;
-
-            case CHASSIS_RELAX:
-                chassis_relax_handle();
-                HAL_GPIO_WritePin(GPIOI,GPIO_PIN_6,GPIO_PIN_SET);
-                break;
-            case CHASSIS_BLOCK:
-            {
-                chassis.vx=0;
-                chassis.vy=0;
-                chassis.vw=0;
-                HAL_GPIO_WritePin(GPIOI,GPIO_PIN_6,GPIO_PIN_SET);
-            }
+        speed_set=(float)(rc_ctrl.rc.ch[CHASSIS_X_CHANNEL]) * 0.03f;
+        turn_speed_set=(float)(rc_ctrl.rc.ch[2])*0.08f;
+        ins_angle[0]=INS_angle[0]*MOTOR_RAD_TO_ANGLE;
+        ins_angle[1]=INS_angle[1]*MOTOR_RAD_TO_ANGLE;
+        ins_angle[2]=INS_angle[2]*MOTOR_RAD_TO_ANGLE;
+        if(switch_is_down(rc_ctrl.rc.s[RC_s_R]))
+        {
+            mode=0;
+        }
+        if(switch_is_mid(rc_ctrl.rc.s[RC_s_R]))
+        {
+            mode=1;
+        }
+        if(mode==0)
+        {
+            motorL.give_current=0;
+            motorR.give_current=0;
+            change_current_to_pwm(&motorL);
+            change_current_to_pwm(&motorR);
+            can_send_motor_lg(&motorL,&motorR);
+        }
+        else{
+            first_Kalman_Filter(&motorL.kalman, motorL.speed);
+            first_Kalman_Filter(&motorR.kalman, motorR.speed);
+            float angle_loop_out= pid_calc(&standstill_pid, ins_angle[2], -0.8f);
+            aver_speed=(-motorL.kalman.X_now+motorR.kalman.X_now)/2;
+            float speed_out_r=pid_calc(&motorR.pid, aver_speed, speed_set);
+            motorR.give_current=angle_loop_out+speed_out_r+turn_speed_set;
+            motorL.give_current=-angle_loop_out-speed_out_r+turn_speed_set;
+            change_current_to_pwm(&motorL);
+            change_current_to_pwm(&motorR);
+            can_send_motor_lg(&motorL,&motorR);
+            vTaskDelay(10);
         }
 
-        if (chassis.mode != CHASSIS_RELAX) {
-            //底盘解算
-            chassis_wheel_cal();
-            //功率限制
-//          chassis_power_limit();
-            //驱电机闭环
-            chassis_wheel_loop_cal();
-            //电机映射
-            chassis_can_send_back_mapping();
-        }
-        xTaskResumeAll();
-
-        vTaskDelay(1);
     }
 
 }

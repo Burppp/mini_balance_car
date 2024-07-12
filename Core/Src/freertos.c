@@ -139,8 +139,8 @@ void MX_FREERTOS_Init(void) {
 //  gimbalTaskHandle = osThreadCreate(osThread(gimbalTask), NULL);
 //
 //  /* definition and creation of imuTask */
-//  osThreadDef(imuTask, INS_task, osPriorityIdle, 0, 512);
-//  imuTaskHandle = osThreadCreate(osThread(imuTask), NULL);
+  osThreadDef(imuTask, INS_task, osPriorityIdle, 0, 512);
+  imuTaskHandle = osThreadCreate(osThread(imuTask), NULL);
 //
 //  /* definition and creation of detectTask */
 //  osThreadDef(detectTask, detect_task, osPriorityIdle, 0, 128);

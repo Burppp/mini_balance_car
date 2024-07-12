@@ -19,6 +19,7 @@
 #include "struct_typedef.h"
 #include "PID.h"
 #include "Cap.h"
+#include "filter.h"
 /******************** define *******************/
 
 #define HALF_ECD_RANGE  4096
@@ -157,6 +158,14 @@ typedef union
     uint32_t distance_data;
 }tof_t;
 
+typedef struct {
+    float speed;
+    uint16_t pwm1;
+    uint16_t pwm2;
+    pid_t pid;
+    float give_current;
+    first_kalman_filter_t kalman;
+}motor_t;
 /******************** extern *******************/
 
 
@@ -177,5 +186,5 @@ extern fp32 motor_ecd_to_angle_change(uint16_t ecd,uint16_t offset_ecd);
 extern void CAN_cmd_communication(CAN_TYPE can_type,can_msg_id_e CMD_ID,fp32 vx,fp32 vy);
 
 extern void CAN_cmd_cap2(cap2_info_t*cap);
-
+extern void can_send_motor_lg(motor_t *m1, motor_t *m2);
 #endif

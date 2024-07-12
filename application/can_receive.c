@@ -63,6 +63,7 @@ motor_measure_t motor_yaw_measure;
 motor_measure_t motor_pitch_measure;
 motor_measure_t motor_shoot_measure[4];//0:TRIGGER,建为数组方便以后添加
 motor_measure_t motor_2006_measure[1];//TRIGGER
+
 extern cap2_info_t cap2;
 
 static CAN_TxHeaderTypeDef tx_message;
@@ -70,7 +71,8 @@ static uint8_t can_send_data[8];
 extern int32_t cap_percentage;
 
 int cap_can_cnt = 0;
-
+extern motor_t motorL;
+extern motor_t motorR;
 void cap2_info_decode(cap2_info_t *cap,uint8_t *rx_data){
     cap->mode=rx_data[0];
 //    cap->rec_cap_cmd=rx_data[1];
@@ -105,7 +107,24 @@ void CAN_cmd_motor(CAN_TYPE can_type, can_msg_id_e CMD_ID, int16_t motor1, int16
     }
 
 }
-
+void can_send_motor_lg(motor_t *m1, motor_t *m2)
+{
+    uint32_t send_mail_box;
+    tx_message.StdId = 0x0001;
+    tx_message.IDE = CAN_ID_STD;
+    tx_message.RTR = CAN_RTR_DATA;
+    tx_message.DLC = 0x08;
+    uint8_t buffer[8];
+    buffer[0]=m1->pwm1;
+    buffer[1]=m1->pwm1>>8;
+    buffer[2]=m1->pwm2;
+    buffer[3]=m1->pwm2>>8;
+    buffer[4]=m2->pwm1;
+    buffer[5]=m2->pwm1>>8;
+    buffer[6]=m2->pwm2;
+    buffer[7]=m2->pwm2>>8;
+    HAL_CAN_AddTxMessage(&hcan2, &tx_message, buffer, &send_mail_box);
+}
 
 void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
     CAN_RxHeaderTypeDef rx_header;
@@ -114,66 +133,16 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan) {
 
     HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &rx_header, rx_data);
 
-    if (hcan == &hcan1) {
+    if (hcan == &hcan2) {
         switch (rx_header.StdId) {
-            case CAN_CHASSIS_3508_MOTOR_RF: {
-                get_motor_measure(&motor_3508_measure[RF], rx_data);
-                detect_handle(DETECT_CHASSIS_3508_RF);
+            case 0x0002: {
+                float rpm_l, rpm_r;
+                memcpy(&rpm_l, rx_data, 4);
+                memcpy(&rpm_r, rx_data + 4, 4);
+                motorL.speed = rpm_l*3.14159265f*6.7f;
+                motorR.speed = rpm_r*3.14159265f*6.7f;
             }break;
 
-            case CAN_CHASSIS_3508_MOTOR_LF: {
-                get_motor_measure(&motor_3508_measure[LF], rx_data);
-                detect_handle(DETECT_CHASSIS_3508_LF);
-            }break;
-
-            case CAN_CHASSIS_3508_MOTOR_LB: {
-                get_motor_measure(&motor_3508_measure[LB], rx_data);
-                detect_handle(DETECT_CHASSIS_3508_LB);
-            }break;
-
-            case CAN_CHASSIS_3508_MOTOR_RB: {
-                get_motor_measure(&motor_3508_measure[RB], rx_data);
-                detect_handle(DETECT_CHASSIS_3508_RB);
-            }break;
-
-            case CAN_GIMBAL_6020_YAW: {
-                get_motor_measure(&motor_yaw_measure, rx_data);
-                detect_handle(DETECT_GIMBAL_6020_YAW);
-            }break;
-
-            case 0x001:{
-                cap2_info_decode(&cap2,rx_data);
-                detect_handle(DETECT_CAP);
-            }break;
-
-            default:
-                break;
-        }
-    } else if (hcan == &hcan2) {
-        switch (rx_header.StdId) {
-
-            case CAN_LAUNCHER_3508_FIRE_L: {
-                get_motor_measure(&motor_3508_measure[4], rx_data);
-                detect_handle(DETECT_LAUNCHER_3508_FIRE_L);
-            }break;
-
-            case CAN_LAUNCHER_3508_FIRE_R:{
-                get_motor_measure(&motor_3508_measure[5], rx_data);
-                detect_handle(DETECT_LAUNCHER_3508_FIRE_R);
-            }break;
-
-            case CAN_GIMBAL_6020_PITCH: {
-                get_motor_measure(&motor_pitch_measure, rx_data);
-                detect_handle(DETECT_GIMBAL_6020_PITCH);
-            }break;
-
-            case CAN_LAUNCHER_2006_TRIGGER: {
-                get_motor_measure(&motor_2006_measure[0], rx_data);
-                get_motor_round_cnt(motor_2006_measure[0]);//获取转动拨轮电机转动圈数和总编码值
-                detect_handle(DETECT_LAUNCHER_2006_TRIGGER);
-            }break;
-            default:
-                break;
         }
     }
 }
