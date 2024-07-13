@@ -1,4 +1,4 @@
-# Install script for directory: C:/Users/HuangShukun/Documents/GitHub/mini_balance_car
+# Install script for directory: C:/Users/Lumos/Documents/GitHub/mini_balance_car
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -45,5 +45,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "C:/Users/HuangShukun/Documents/GitHub/mini_balance_car/cmake-build-debug/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "C:/Users/Lumos/Documents/GitHub/mini_balance_car/cmake-build-debug/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

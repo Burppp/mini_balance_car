@@ -39,7 +39,7 @@
 				{
 					"directoryIndex" : 0,
 					"id" : "omni-infantry.elf::@6890427a1f51a3e7e1df",
-					"jsonFile" : "target-omni-infantry.elf-Debug-7d653835b660b777231d.json",
+					"jsonFile" : "target-omni-infantry.elf-Debug-ba10be339a208c3af876.json",
 					"name" : "omni-infantry.elf",
 					"projectIndex" : 0
 				}
@@ -49,12 +49,12 @@
 	"kind" : "codemodel",
 	"paths" : 
 	{
-		"build" : "C:/Users/HuangShukun/Documents/GitHub/mini_balance_car/cmake-build-debug",
-		"source" : "C:/Users/HuangShukun/Documents/GitHub/mini_balance_car"
+		"build" : "C:/Users/Lumos/Documents/GitHub/mini_balance_car/cmake-build-debug",
+		"source" : "C:/Users/Lumos/Documents/GitHub/mini_balance_car"
 	},
 	"version" : 
 	{
 		"major" : 2,
-		"minor" : 6
+		"minor" : 5
 	}
 }
